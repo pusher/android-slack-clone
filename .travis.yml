@@ -1,0 +1,32 @@
+language: android
+
+# https://stackoverflow.com/a/47726910/458365
+before_install:
+- yes | sdkmanager "platforms;android-27"
+
+before_cache:
+  - rm -f  $HOME/.gradle/caches/modules-2/modules-2.lock
+  - rm -fr $HOME/.gradle/caches/*/plugin-resolution/
+
+cache:
+  directories:
+    - ${HOME}/.gradle/caches/
+    - ${HOME}/.gradle/wrapper/
+    - ${HOME}/.android/build-cache
+    - ${TRAVIS_BUILD_DIR}/gradle/caches/
+    - ${TRAVIS_BUILD_DIR}/gradle/wrapper/dists/
+    - ${TRAVIS_BUILD_DIR}/android-sdk/extras/
+
+script: ./gradlew build --stacktrace
+
+android:
+  components:
+    - tools
+    - build-tools-27.0.3
+    - android-27
+    - add-on
+    - extra
+  licenses:
+    - 'android-sdk-preview-.+'
+    - 'android-sdk-license-.+'
+    - 'google-gdk-license-.+'
