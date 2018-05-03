@@ -11,9 +11,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.pusher.chatkit.Message
-import com.pusher.chatkit.Room
-import com.pusher.chatkit.RoomSubscriptionListeners
+import com.pusher.chatkit.*
 import com.pusher.chatkitdemo.R
 import com.pusher.chatkitdemo.app
 import com.pusher.chatkitdemo.recyclerview.dataAdapterFor
@@ -27,12 +25,17 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import com.pusher.chatkitdemo.room.RoomState.*
 import kotlinx.coroutines.experimental.Job
+import kotlin.properties.Delegates
 
 typealias PusherError = elements.Error
 
 class RoomFragment : Fragment() {
 
     private val views by lazy { arrayOf(idleLayout, loadedLayout, errorLayout) }
+
+    private var state by Delegates.observable<RoomState>(RoomState.Initial) { _, _, new ->
+        new.render()
+    }
 
     private val adapter = dataAdapterFor<Item> {
         on<Item.Loaded>(R.layout.item_message) { (details) ->
@@ -60,27 +63,52 @@ class RoomFragment : Fragment() {
                 reverseLayout = true
             }
             sendButton.setOnClickListener {
-                val messageText = messageInput.text
-                if (messageText.isNotBlank()) {
-                    TODO()
+                messageInput.text.takeIf { it.isNotBlank() }?.let { text ->
+                    state.let { it as? Ready }?.let { it.room.id }?.let { roomId ->
+                        senMessage(roomId, text)
+                    }
                 }
             }
         }
     }
 
+    private fun senMessage(roomId: Int, text: CharSequence) = launch {
+        app.currentUser().apply {
+            val item = Item.Pending(Item.Details(id, text))
+            addItem(item)
+            sendMessage(
+                roomId = roomId,
+                text = text.toString(),
+                attachment = null,
+                onCompleteListener = MessageSentListener {
+                    removeItem(item)
+                    addItem(item.details.let { (userName, message) ->
+                        Item.Loaded(Item.Details(userName, message))
+                    })
+                },
+                onErrorListener = ErrorListener { error ->
+                    removeItem(item)
+                    addItem(item.details.let { (userName, message) ->
+                        Item.Failed(Item.Details(userName, message), error)
+                    })
+                }
+            )
+        }
+    }
+
     fun bind(roomId: Int) = launch {
-        Looper.prepare() // Old version of the SDK uses a handle and breaks
+        if(Looper.myLooper() == null)Looper.prepare() // Old version of the SDK uses a handle and breaks
         with(app.currentUser()) {
             val room = getRoom(roomId)
             when (room) {
                 null -> renderFailed(Error("Room not found"))
                 else -> subscribeToRoom(room, messageLimit = 20, listeners = object : RoomSubscriptionListeners {
-                    override fun onError(error: PusherError?) {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    override fun onError(error: PusherError) {
+                        state = RoomState.Failed(error)
                     }
 
-                    override fun onNewMessage(message: Message?) {
-                        TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+                    override fun onNewMessage(message: Message) {
+                        addItem(Item.Loaded(Item.Details(message.user?.name ?: "???", message.text ?: "---")))
                     }
 
                 })
@@ -88,6 +116,16 @@ class RoomFragment : Fragment() {
 
         }
     }
+
+    private fun addItem(item: Item) = launchOnUi {
+        adapter.data = adapter.data + item
+    }
+
+
+    private fun removeItem(item: Item) = launchOnUi {
+        adapter.data = adapter.data - item
+    }
+
 
     private fun RoomState.render(): Job = when (this) {
         is Initial -> renderIdle()
@@ -118,7 +156,7 @@ class RoomFragment : Fragment() {
     private fun renderFailed(error: Error) = launchOnUi {
         views.showOnly(errorLayout)
         errorMessageView.text = error.message
-        retryButton.visibility = View.GONE // TODO: Retry policy
+        retryButton.visibility = View.GONE // TODO: Retry button
     }
 
     private fun renderNoMembership() =
@@ -140,14 +178,14 @@ sealed class RoomState {
 
     data class Ready(val room: Room, val items: List<Item>) : RoomState()
 
-    data class Failed (val error: Error) : RoomState()
+    data class Failed (val error: PusherError) : RoomState()
 
     sealed class Item {
         abstract val details: Details
 
         data class Loaded(override val details: Details) : Item()
         data class Pending(override val details: Details) : Item()
-        data class Failed(override val details: Details, val error: Error) : Item()
+        data class Failed(override val details: Details, val error: PusherError) : Item()
 
         data class Details(val userName: CharSequence, val message: CharSequence)
 

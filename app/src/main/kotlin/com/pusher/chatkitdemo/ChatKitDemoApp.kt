@@ -58,7 +58,7 @@ class ChatKitDemoApp : Application() {
         get() = userPreferences.token
         set(value) { userPreferences.token = value }
 
-    private val chat: ChatManager by lazy {
+    val chat: ChatManager by lazy {
         ChatManager(
             instanceLocator = INSTANCE_LOCATOR,
             userId = userPreferences.userId ?: USER_ID,
