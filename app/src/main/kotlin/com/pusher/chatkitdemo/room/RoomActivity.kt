@@ -2,11 +2,13 @@ package com.pusher.chatkitdemo.room
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import com.google.gson.JsonObject
 import com.pusher.chatkitdemo.R
 import com.pusher.chatkitdemo.navigation.NavigationEvent
 import com.pusher.chatkitdemo.navigation.failNavigation
 import com.pusher.chatkitdemo.navigation.navigationEvent
 import kotlinx.android.synthetic.main.activity_room.*
+import org.json.JSONObject
 import android.net.Uri.parse as parseUri
 
 class RoomActivity : AppCompatActivity() {

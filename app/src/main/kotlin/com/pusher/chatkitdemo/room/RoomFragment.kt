@@ -3,6 +3,7 @@ package com.pusher.chatkitdemo.room
 import android.arch.lifecycle.Lifecycle.State.STARTED
 import android.arch.lifecycle.LifecycleOwner
 import android.os.Bundle
+import android.os.Looper
 import android.support.annotation.UiThread
 import android.support.v4.app.Fragment
 import android.support.v7.widget.LinearLayoutManager
@@ -68,11 +69,12 @@ class RoomFragment : Fragment() {
     }
 
     fun bind(roomId: Int) = launch {
+        Looper.prepare() // Old version of the SDK uses a handle and breaks
         with(app.currentUser()) {
             val room = getRoom(roomId)
             when (room) {
                 null -> renderFailed(Error("Room not found"))
-                else -> subscribeToRoom(room, listeners = object : RoomSubscriptionListeners {
+                else -> subscribeToRoom(room, messageLimit = 20, listeners = object : RoomSubscriptionListeners {
                     override fun onError(error: PusherError?) {
                         TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
                     }

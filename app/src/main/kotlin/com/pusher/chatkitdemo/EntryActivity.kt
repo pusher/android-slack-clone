@@ -110,7 +110,6 @@ class EntryViewModel : ViewModel() {
             "&redirect_uri=$callbackUri"
     }
 
-    private val userPreferences = app.userPreferences
     private val stateBroadcast = BroadcastChannel<EntryActivity.State>(Channel.CONFLATED)
     val states get() = stateBroadcast.openSubscription()
 
@@ -123,17 +122,16 @@ class EntryViewModel : ViewModel() {
     }
 
     fun load() = launch {
-        val userId = userPreferences.userId
-        when (userId) {
-            null -> sequenceOf(RequiresAuth(Github.gitHubAuthUrl))
-            else -> sequenceOf(UserIdReady(userId))
-        }.forEach {
-            stateBroadcast.send(it)
+        app.userId.let { id ->
+            when (id) {
+                null -> RequiresAuth(Github.gitHubAuthUrl)
+                else -> UserIdReady(id)
+            }.let { stateBroadcast.send(it) }
         }
     }
 
     suspend fun loadUser(userId: String) {
-        userPreferences.userId = userId
+        app.userId = userId
         val state = UserReady(app.currentUser())
         stateBroadcast.send(state)
     }
@@ -157,8 +155,8 @@ class EntryViewModel : ViewModel() {
             when (responseBody) {
                 null -> stateBroadcast.offer(Failure(NetworkError("Oops! response: $response")))
                 else -> responseBody.let { (id, token) ->
-                    userPreferences.userId = id
-                    userPreferences.token = token
+                    app.userId = id
+                    app.token = token
                     stateBroadcast.send(UserIdReady(id))
                 }
             }

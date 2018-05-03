@@ -42,9 +42,23 @@ class ChatKitDemoApp : Application() {
         }
 
     val logger: Logger by lazy { AndroidLogger(LogLevel.VERBOSE) }
-    val userPreferences by lazy { UserPreferences(this) }
+    private val userPreferences by lazy { UserPreferences(this) }
 
-    val chat: ChatManager by lazy {
+    var userId: String?
+        get() = userPreferences.userId
+        set(value) {
+            userPreferences.userId = value
+            value?.let { id ->
+                userPreferences.userId = id
+                connect()
+            }
+        }
+
+    var token : String?
+        get() = userPreferences.token
+        set(value) { userPreferences.token = value }
+
+    private val chat: ChatManager by lazy {
         ChatManager(
             instanceLocator = INSTANCE_LOCATOR,
             userId = userPreferences.userId ?: USER_ID,
@@ -53,61 +67,27 @@ class ChatKitDemoApp : Application() {
         )
     }
 
-    init {
+    override fun onCreate() = super.onCreate().also {
         maybeApp = this
+    }
+
+    private fun connect() {
         chat.connect(object : UserSubscriptionListener {
-            override fun removedFromRoom(roomId: Int) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun userLeft(user: User?, room: Room?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun usersUpdated() {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun userCameOnline(user: User?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun roomUpdated(room: Room?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun addedToRoom(room: Room?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun roomDeleted(roomId: Int) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun userWentOffline(user: User?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun userStoppedTyping(user: User?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun userJoined(user: User?, room: Room?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun userStartedTyping(user: User?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
-            override fun onError(error: Error?) {
-                TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
-            }
-
+            override fun removedFromRoom(roomId: Int) = Unit
+            override fun userLeft(user: User?, room: Room?) = Unit
+            override fun usersUpdated() = Unit
+            override fun userCameOnline(user: User?) = Unit
+            override fun roomUpdated(room: Room?) = Unit
+            override fun addedToRoom(room: Room?) = Unit
+            override fun roomDeleted(roomId: Int) = Unit
+            override fun userWentOffline(user: User?) = Unit
+            override fun userStoppedTyping(user: User?) = Unit
+            override fun userJoined(user: User?, room: Room?) = Unit
+            override fun userStartedTyping(user: User?) = Unit
+            override fun onError(error: Error?) = Unit
             override fun currentUserReceived(currentUser: CurrentUser?) {
                 app.currentUser = currentUser
             }
-
         })
     }
 
