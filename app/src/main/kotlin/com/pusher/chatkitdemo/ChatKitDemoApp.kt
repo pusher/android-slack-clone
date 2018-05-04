@@ -4,7 +4,6 @@ import android.app.Application
 import android.content.Context
 import android.support.v4.app.Fragment
 import com.pusher.chatkit.*
-import com.pusher.chatkitdemo.BuildConfig.*
 import com.pusher.platform.logger.AndroidLogger
 import com.pusher.platform.logger.LogLevel
 import com.pusher.platform.logger.Logger
@@ -14,11 +13,14 @@ import kotlinx.coroutines.experimental.channels.BroadcastChannel
 import kotlinx.coroutines.experimental.channels.Channel
 import kotlin.properties.Delegates
 
+private const val INSTANCE_LOCATOR = "v1:us1:05f46048-3763-4482-9cfe-51ff327c3f29"
+private const val TOKEN_PROVIDER_ENDPOINT = "https://chatkit-demo-server.herokuapp.com/token"
+
 val Context.app: ChatKitDemoApp
     get() = when (applicationContext) {
-        null -> throw IllegalStateException("Application context is null")
+        null -> error("Application context is null")
         is ChatKitDemoApp -> applicationContext as ChatKitDemoApp
-        else -> throw IllegalStateException("Application context ($applicationContext) is not ${nameOf<ChatKitDemoApp>()}")
+        else -> error("Application context ($applicationContext) is not ${nameOf<ChatKitDemoApp>()}")
     }
 
 val Fragment.app: ChatKitDemoApp
@@ -33,10 +35,8 @@ class ChatKitDemoApp : Application() {
 
     private val tokenProvider: TokenProvider
         get() {
-            val userId = userPreferences.userId
-            val token = userPreferences.token
-            checkNotNull(userId) { "No user id available" }
-            checkNotNull(token) { "No token available" }
+            val userId = checkNotNull(userPreferences.userId) { "No user id available" }
+            val token = checkNotNull(userPreferences.token) { "No token available" }
             val endpoint = "$TOKEN_PROVIDER_ENDPOINT?user=$userId&token=$token"
             return ChatkitTokenProvider(endpoint)
         }
@@ -47,21 +47,17 @@ class ChatKitDemoApp : Application() {
     var userId: String?
         get() = userPreferences.userId
         set(value) {
-            userPreferences.userId = value
-            value?.let { id ->
-                userPreferences.userId = id
-                connect()
-            }
+            userPreferences.userId = value?.also { connect() }
         }
 
     var token : String?
         get() = userPreferences.token
         set(value) { userPreferences.token = value }
 
-    val chat: ChatManager by lazy {
+    private val chat: ChatManager by lazy {
         ChatManager(
             instanceLocator = INSTANCE_LOCATOR,
-            userId = userPreferences.userId ?: USER_ID,
+            userId = userPreferences.userId ?: error("User not logged in"),
             context = applicationContext,
             tokenProvider = tokenProvider
         )

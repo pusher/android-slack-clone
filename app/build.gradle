@@ -36,16 +36,6 @@ android {
 
 }
 
-android.applicationVariants.all { variant ->
-    buildConfigStringFields(variant,
-        [
-            "INSTANCE_LOCATOR" : "pusher_instance_locator",
-            "TOKEN_PROVIDER_ENDPOINT" : "pusher_token_provider_url",
-            "USER_ID" : "pusher_user_name"
-        ]
-    )
-}
-
 kotlin {
     experimental {
         coroutines 'enable'
