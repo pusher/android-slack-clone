@@ -33,58 +33,61 @@ class ChatKitDemoApp : Application() {
         val app get() = checkNotNull(maybeApp)
     }
 
-    private val tokenProvider: TokenProvider
-        get() {
-            val userId = checkNotNull(userPreferences.userId) { "No user id available" }
-            val token = checkNotNull(userPreferences.token) { "No token available" }
-            val endpoint = "$TOKEN_PROVIDER_ENDPOINT?user=$userId&token=$token"
-            return ChatkitTokenProvider(endpoint)
-        }
-
     val logger: Logger by lazy { AndroidLogger(LogLevel.VERBOSE) }
     private val userPreferences by lazy { UserPreferences(this) }
 
     var userId: String?
         get() = userPreferences.userId
         set(value) {
-            userPreferences.userId = value?.also { connect() }
+            userPreferences.userId = value
+            tryConnect(value, token)
         }
 
     var token : String?
         get() = userPreferences.token
-        set(value) { userPreferences.token = value }
+        set(value) {
+            userPreferences.token = value
+            tryConnect(userId, value)
+        }
 
-    private val chat: ChatManager by lazy {
-        ChatManager(
-            instanceLocator = INSTANCE_LOCATOR,
-            userId = userPreferences.userId ?: error("User not logged in"),
-            context = applicationContext,
-            tokenProvider = tokenProvider
-        )
+    private fun tryConnect(userId: String?, token: String?) = when {
+        userId != null && token != null -> connect(userId, token)
+        else -> Unit // ignore
     }
+
+    private var chat: ChatManager? = null
 
     override fun onCreate() = super.onCreate().also {
         maybeApp = this
     }
 
-    private fun connect() {
-        chat.connect(object : UserSubscriptionListener {
-            override fun removedFromRoom(roomId: Int) = Unit
-            override fun userLeft(user: User?, room: Room?) = Unit
-            override fun usersUpdated() = Unit
-            override fun userCameOnline(user: User?) = Unit
-            override fun roomUpdated(room: Room?) = Unit
-            override fun addedToRoom(room: Room?) = Unit
-            override fun roomDeleted(roomId: Int) = Unit
-            override fun userWentOffline(user: User?) = Unit
-            override fun userStoppedTyping(user: User?) = Unit
-            override fun userJoined(user: User?, room: Room?) = Unit
-            override fun userStartedTyping(user: User?) = Unit
-            override fun onError(error: Error?) = Unit
-            override fun currentUserReceived(currentUser: CurrentUser?) {
-                app.currentUser = currentUser
-            }
-        })
+    private fun connect(userId: String, token: String) {
+        chat = ChatManager(
+            instanceLocator = INSTANCE_LOCATOR,
+            userId = userId,
+            context = applicationContext,
+            tokenProvider = ChatkitTokenProvider(
+                "$TOKEN_PROVIDER_ENDPOINT?user=$userId&token=$token"
+            )
+        ).also { chat ->
+            chat.connect(object : UserSubscriptionListener {
+                override fun removedFromRoom(roomId: Int) = Unit
+                override fun userLeft(user: User?, room: Room?) = Unit
+                override fun usersUpdated() = Unit
+                override fun userCameOnline(user: User?) = Unit
+                override fun roomUpdated(room: Room?) = Unit
+                override fun addedToRoom(room: Room?) = Unit
+                override fun roomDeleted(roomId: Int) = Unit
+                override fun userWentOffline(user: User?) = Unit
+                override fun userStoppedTyping(user: User?) = Unit
+                override fun userJoined(user: User?, room: Room?) = Unit
+                override fun userStartedTyping(user: User?) = Unit
+                override fun onError(error: Error?) = Unit
+                override fun currentUserReceived(currentUser: CurrentUser?) {
+                    app.currentUser = currentUser
+                }
+            })
+        }
     }
 
     private var currentUser by Delegates.observable<CurrentUser?>(null) { _, _, new ->

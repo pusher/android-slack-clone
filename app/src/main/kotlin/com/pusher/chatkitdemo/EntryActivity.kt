@@ -3,6 +3,7 @@ package com.pusher.chatkitdemo
 import android.arch.lifecycle.ViewModel
 import android.content.Intent
 import android.os.Bundle
+import android.os.Looper
 import android.support.v7.app.AppCompatActivity
 import com.google.gson.GsonBuilder
 import com.pusher.chatkit.CurrentUser
@@ -145,6 +146,7 @@ class EntryViewModel : ViewModel() {
 
     fun authorize(code: String) {
         launch {
+            if (Looper.myLooper() == null) Looper.prepare()
             val requestBody = RequestBody.create(MediaType.parse("text/plain"), AuthRequestBody(code).toJson())
             val request = Request.Builder().apply {
                 url("https://chatkit-demo-server.herokuapp.com/auth")
