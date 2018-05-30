@@ -90,5 +90,4 @@ fun Context.openMain(userId: String) =
 
 fun Activity.failNavigation(navigationEvent: NavigationEvent) {
     app.logger.error("Failed to load navigation: $navigationEvent")
-    finish()
 }

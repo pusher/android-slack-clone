@@ -1,84 +1,36 @@
 package com.pusher.chatkitdemo
 
-import android.annotation.SuppressLint
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
-import android.support.v7.widget.LinearLayoutManager
-import android.view.View.GONE
-import android.view.View.VISIBLE
-import com.pusher.chatkit.Room
-import com.pusher.chatkitdemo.MainActivity.State.Loaded
-import com.pusher.chatkitdemo.navigation.open
-import com.pusher.chatkitdemo.recyclerview.dataAdapterFor
-import com.pusher.chatkitdemo.room.coolName
-import elements.Error
+import android.widget.LinearLayout
+import com.pusher.chatkitdemo.room.RoomFragment
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.item_room.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
-import kotlin.properties.Delegates
-import kotlinx.android.synthetic.main.activity_main.room_list as roomListView
+
 
 class MainActivity : AppCompatActivity() {
 
-    private val adapter = dataAdapterFor(R.layout.item_room) { room: Room ->
-        @SuppressLint("SetTextI18n")
-        roomNameView.text = room.coolName
-        roomItemLayout.setOnClickListener {
-            open(room)
-        }
-    }
-
-    private var state by Delegates.observable<State>(State.Idle) { _, _, state ->
-        state.render()
+    companion object {
+        var twoPane = false
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         setSupportActionBar(toolbar)
+        if (findViewById<LinearLayout>(R.id.tabletLinearLayout) != null) {
+            twoPane = true
 
-        roomListView.adapter = adapter
-        roomListView.layoutManager = LinearLayoutManager(this)
+            supportFragmentManager.beginTransaction()
+                    .replace(R.id.chatRoomTablet,
+                            RoomFragment())
+                    .commit()
 
-        state = State.Idle
-
-        launch {
-            state = Loaded(app.currentUser().rooms())
+        } else {
+            twoPane = false
         }
+
     }
 
-    private fun State.render() = when (this) {
-        is State.Idle -> launch(UI) { renderIdle() }
-        is State.Loaded -> launch(UI) { renderLoaded(rooms) }
-        is State.Failed -> launch(UI) { renderFailed(error) }
-    }
-
-    private fun renderIdle() {
-        progress.visibility = VISIBLE
-        roomListView.visibility = GONE
-        errorView.visibility = GONE
-    }
-
-    private fun renderLoaded(rooms: Set<Room>) {
-        progress.visibility = GONE
-        roomListView.visibility = VISIBLE
-        errorView.visibility = GONE
-        adapter.data = rooms.filter { it.memberUserIds.size < 100 }
-    }
-
-    private fun renderFailed(error: Error) {
-        progress.visibility = GONE
-        roomListView.visibility = GONE
-        errorView.visibility = VISIBLE
-        errorView.text = "$error"
-    }
-
-    sealed class State {
-        object Idle : State()
-        data class Loaded(val rooms: Set<Room>) : State()
-        data class Failed(val error: Error) : State()
-    }
 
 }
 

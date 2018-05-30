@@ -58,6 +58,7 @@ dependencies {
     implementation "com.android.support:customtabs:$android_support_version"
     implementation "com.pusher:chatkit-android:0.1.0"
 
+    implementation 'com.android.support:support-v4:27.1.1'
     testImplementation "junit:junit:$junit_legacy_version"
 
     androidTestImplementation "com.android.support.test:runner:$espresso_runner_version"
