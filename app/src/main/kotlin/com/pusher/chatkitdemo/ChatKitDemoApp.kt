@@ -29,6 +29,7 @@ val Fragment.app: ChatKitDemoApp
 class ChatKitDemoApp : Application() {
 
     companion object {
+        var twoPane:Boolean = false
         private var maybeApp: ChatKitDemoApp? = null
         val app get() = checkNotNull(maybeApp)
     }

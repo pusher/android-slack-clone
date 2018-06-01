@@ -1,0 +1,30 @@
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    app:startDestination="@+id/main_activity">
+
+    <fragment
+        android:id="@+id/main_activity"
+        android:name="com.pusher.chatkitdemo.main.MainActivityFragment"
+        android:label="ChatKit Demo"
+        tools:layout="@layout/fragment_main_activity">
+
+        <action
+            android:id="@+id/action_open_room"
+            app:destination="@id/room_fragment"/>
+
+
+    </fragment>
+
+    <fragment
+        android:id="@+id/room_fragment"
+        android:name="com.pusher.chatkitdemo.room.RoomFragment"
+        android:label="Room"
+        tools:layout="@layout/fragment_room">
+
+    </fragment>
+
+
+
+
+</navigation>

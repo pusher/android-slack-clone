@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<android.support.design.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<android.support.design.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
@@ -31,18 +32,20 @@
         android:orientation="horizontal">
 
         <fragment
-            android:id="@+id/fragment"
-            android:name="com.pusher.chatkitdemo.main.MainActivityFragment"
+            android:id="@+id/navHostFragment"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            app:defaultNavHost="true"
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="1" />
+            android:layout_weight="1"
+            app:navGraph="@navigation/nav_graph"/>
 
-
-        <FrameLayout
-            android:id="@+id/chatRoomTablet"
+        <fragment
             android:layout_width="0dp"
             android:layout_height="match_parent"
-            android:layout_weight="2" />
+            android:layout_weight="2"
+            android:name="com.pusher.chatkitdemo.room.RoomFragment"
+            android:id="@+id/roomTablet"/>
 
     </LinearLayout>
 

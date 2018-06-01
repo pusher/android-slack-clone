@@ -9,16 +9,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ProgressBar
+import androidx.navigation.Navigation
+import androidx.navigation.Navigation.findNavController
+import androidx.navigation.findNavController
+import androidx.navigation.fragment.findNavController
 import com.pusher.chatkit.Room
 import com.pusher.chatkit.RoomsListener
+import com.pusher.chatkitdemo.ChatKitDemoApp
 import com.pusher.chatkitdemo.MainActivity
 import com.pusher.chatkitdemo.R
 import com.pusher.chatkitdemo.app
+import com.pusher.chatkitdemo.navigation.NavigationEvent
+import com.pusher.chatkitdemo.navigation.failNavigation
+import com.pusher.chatkitdemo.navigation.navigationEvent
 import com.pusher.chatkitdemo.navigation.open
 import com.pusher.chatkitdemo.recyclerview.dataAdapterFor
 import com.pusher.chatkitdemo.room.RoomFragment
 import com.pusher.chatkitdemo.room.coolName
 import elements.Error
+import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.fragment_main_activity.*
 import kotlinx.android.synthetic.main.item_room.*
 import kotlinx.coroutines.experimental.android.UI
@@ -34,13 +43,16 @@ class MainActivityFragment : Fragment() {
         @SuppressLint("SetTextI18n")
         roomNameView.text = room.coolName
         roomItemLayout.setOnClickListener {
-            if (MainActivity.twoPane){
-                activity!!.supportFragmentManager.beginTransaction()
-                        .replace(R.id.chatRoomTablet,RoomFragment())
-                        .commit()
-            } else {
-                activity!!.open(room)
+            activity?.apply {
+                if (ChatKitDemoApp.twoPane) {
+                    supportFragmentManager.beginTransaction()
+                            .replace(R.id.roomTablet,RoomFragment())
+                            .commit()
+                } else {
+                    Navigation.findNavController(it).navigate(R.id.action_open_room)
+                }
             }
+
         }
     }
 

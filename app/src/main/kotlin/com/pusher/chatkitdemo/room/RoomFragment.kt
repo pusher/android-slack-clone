@@ -11,6 +11,7 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.Toast
 import com.pusher.chatkit.*
 import com.pusher.chatkitdemo.R
 import com.pusher.chatkitdemo.app
@@ -60,11 +61,14 @@ class RoomFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
-        val event = activity!!.intent.navigationEvent
-        when (event) {
-            is NavigationEvent.Room -> bind(event.roomId)
-            else -> activity!!.failNavigation(event)
+        activity?.apply {
+            val event = activity!!.intent.navigationEvent
+            when (event) {
+                is NavigationEvent.Room -> bind(event.roomId)
+                else -> activity!!.failNavigation(event)
+            }
         }
+
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {

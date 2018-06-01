@@ -22,9 +22,12 @@
     </android.support.design.widget.AppBarLayout>
 
     <fragment
-        android:id="@+id/fragment"
+        android:layout_marginTop="54dp"
+        android:id="@+id/navHostFragment"
+        android:name="androidx.navigation.fragment.NavHostFragment"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:name="com.pusher.chatkitdemo.main.MainActivityFragment"/>
+        app:defaultNavHost="true"
+        app:navGraph="@navigation/nav_graph"/>
 
 </android.support.design.widget.CoordinatorLayout>
