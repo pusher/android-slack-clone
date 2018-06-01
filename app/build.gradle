@@ -1,6 +1,7 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
+apply plugin: "androidx.navigation.safeargs"
 apply from: "$rootDir/gradle/android/buildConfig.gradle"
 
 android {
@@ -57,8 +58,12 @@ dependencies {
     implementation "android.arch.lifecycle:common:$android_arch_version"
     implementation "com.android.support:customtabs:$android_support_version"
     implementation "com.pusher:chatkit-android:0.1.0"
-
+    implementation "com.android.support:support-v4:$android_support_version"
     testImplementation "junit:junit:$junit_legacy_version"
+
+    implementation "android.arch.navigation:navigation-fragment-ktx:$nav_version"
+    implementation "android.arch.navigation:navigation-ui-ktx:$nav_version"
+    androidTestImplementation "android.arch.navigation:navigation-testing-ktx:$nav_version"
 
     androidTestImplementation "com.android.support.test:runner:$espresso_runner_version"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$espresso_version"

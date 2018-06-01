@@ -13,14 +13,16 @@ buildscript {
         espresso_runner_version = '1.0.1'
         junit_legacy_version = '4.12'
         pusher_platform_version = '0.3.0'
+        nav_version = "1.0.0-alpha01"
     }
     repositories {
         google()
         jcenter()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:$android_gradle_version"
+        classpath 'com.android.tools.build:gradle:3.2.0-alpha16'
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
+        classpath "android.arch.navigation:navigation-safe-args-gradle-plugin:1.0.0-alpha01"
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
         classpath 'de.mannodermaus.gradle.plugins:android-junit5:1.0.31'
     }

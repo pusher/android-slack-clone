@@ -20,9 +20,8 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <fragment
-        android:id="@+id/roomFragment"
-        android:name="com.pusher.chatkitdemo.room.RoomFragment"
+    <FrameLayout
+        android:id="@+id/frameLayoutActivityRoom"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_behavior="@string/appbar_scrolling_view_behavior" />

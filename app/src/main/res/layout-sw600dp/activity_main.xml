@@ -21,13 +21,32 @@
 
     </android.support.design.widget.AppBarLayout>
 
-    <fragment
-        android:layout_marginTop="54dp"
-        android:id="@+id/navHostFragment"
-        android:name="androidx.navigation.fragment.NavHostFragment"
+
+    <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:id="@+id/tabletLinearLayout"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:defaultNavHost="true"
-        app:navGraph="@navigation/nav_graph"/>
+        android:layout_marginTop="?attr/actionBarSize"
+        android:divider="?android:attr/dividerHorizontal"
+        android:baselineAligned="false"
+        android:orientation="horizontal">
+
+        <fragment
+            android:id="@+id/navHostFragment"
+            android:name="androidx.navigation.fragment.NavHostFragment"
+            app:defaultNavHost="true"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            app:navGraph="@navigation/nav_graph"/>
+
+        <fragment
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="2"
+            android:name="com.pusher.chatkitdemo.room.RoomFragment"
+            android:id="@+id/roomTablet"/>
+
+    </LinearLayout>
 
 </android.support.design.widget.CoordinatorLayout>
