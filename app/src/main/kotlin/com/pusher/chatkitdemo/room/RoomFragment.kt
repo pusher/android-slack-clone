@@ -62,7 +62,8 @@ class RoomFragment : Fragment() {
         with(view) {
             messageList.adapter = adapter
             messageList.layoutManager = LinearLayoutManager(activity).apply {
-                reverseLayout = true
+                reverseLayout = false
+                stackFromEnd = false
             }
             sendButton.setOnClickListener {
                 messageInput.text.takeIf { it.isNotBlank() }?.let { text ->
@@ -86,15 +87,9 @@ class RoomFragment : Fragment() {
                         when(result){
                             is Result.Success -> {
                                 removeItem(item)
-                                addItem(item.details.let { (userName, message) ->
-                                    Item.Loaded(Item.Details(userName, message))
-                                })
                             }
                             is Result.Failure -> {
                                 removeItem(item)
-                                addItem(item.details.let { (userName, message) ->
-                                    Item.Failed(Item.Details(userName, message), result.error)
-                                })
                             }
 
                         }
@@ -122,7 +117,9 @@ class RoomFragment : Fragment() {
                                             ?: "???", message.text ?: "---")))
                                 }
                         ),
-                        callback = { _-> }
+                        callback = { subscription ->
+                            state = Ready(room, emptyList())
+                        }
                 )
             }
             }

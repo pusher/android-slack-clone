@@ -68,9 +68,8 @@ class ChatKitDemoApp : Application() {
 
         val dependencies = AndroidChatkitDependencies(
                 tokenProvider = ChatkitTokenProvider(
-                        endpoint = TOKEN_PROVIDER_ENDPOINT,
+                        endpoint = "$TOKEN_PROVIDER_ENDPOINT?token=$token",
                         userId = userId
-//                        "$TOKEN_PROVIDER_ENDPOINT?userId=$userId&token=$token")
                 )
         )
 
