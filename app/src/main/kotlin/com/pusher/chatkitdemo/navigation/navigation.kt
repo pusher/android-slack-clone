@@ -6,7 +6,7 @@ import android.content.Intent
 import android.content.UriMatcher
 import android.net.Uri
 import android.support.customtabs.CustomTabsIntent
-import com.pusher.chatkit.Room
+import com.pusher.chatkit.rooms.Room
 import com.pusher.chatkitdemo.app
 
 private enum class Screen(val path: String, val authority: String = "chat.pusher.com") {

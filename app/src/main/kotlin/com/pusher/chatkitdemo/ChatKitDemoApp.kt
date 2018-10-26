@@ -4,10 +4,13 @@ import android.app.Application
 import android.content.Context
 import android.support.v4.app.Fragment
 import com.pusher.chatkit.*
+import com.pusher.chatkit.rooms.Room
+import com.pusher.chatkit.users.User
 import com.pusher.platform.logger.AndroidLogger
 import com.pusher.platform.logger.LogLevel
 import com.pusher.platform.logger.Logger
 import com.pusher.platform.tokenProvider.TokenProvider
+import com.pusher.util.Result
 import elements.Error
 import kotlinx.coroutines.experimental.channels.BroadcastChannel
 import kotlinx.coroutines.experimental.channels.Channel
@@ -55,38 +58,37 @@ class ChatKitDemoApp : Application() {
         else -> Unit // ignore
     }
 
-    private var chat: ChatManager? = null
+    private lateinit var chat: ChatManager
 
     override fun onCreate() = super.onCreate().also {
         maybeApp = this
     }
 
     private fun connect(userId: String, token: String) {
+
+        val dependencies = AndroidChatkitDependencies(
+                tokenProvider = ChatkitTokenProvider(
+                        endpoint = TOKEN_PROVIDER_ENDPOINT,
+                        userId = userId
+//                        "$TOKEN_PROVIDER_ENDPOINT?userId=$userId&token=$token")
+                )
+        )
+
+
         chat = ChatManager(
-            instanceLocator = INSTANCE_LOCATOR,
-            userId = userId,
-            context = applicationContext,
-            tokenProvider = ChatkitTokenProvider(
-                "$TOKEN_PROVIDER_ENDPOINT?user=$userId&token=$token"
-            )
-        ).also { chat ->
-            chat.connect(object : UserSubscriptionListener {
-                override fun removedFromRoom(roomId: Int) = Unit
-                override fun userLeft(user: User?, room: Room?) = Unit
-                override fun usersUpdated() = Unit
-                override fun userCameOnline(user: User?) = Unit
-                override fun roomUpdated(room: Room?) = Unit
-                override fun addedToRoom(room: Room?) = Unit
-                override fun roomDeleted(roomId: Int) = Unit
-                override fun userWentOffline(user: User?) = Unit
-                override fun userStoppedTyping(user: User?) = Unit
-                override fun userJoined(user: User?, room: Room?) = Unit
-                override fun userStartedTyping(user: User?) = Unit
-                override fun onError(error: Error?) = Unit
-                override fun currentUserReceived(currentUser: CurrentUser?) {
-                    app.currentUser = currentUser
+                instanceLocator = INSTANCE_LOCATOR,
+                userId = userId,
+                dependencies = dependencies
+        )
+
+        chat.connect { result ->
+            when(result) {
+                is Result.Success -> {
+                    currentUser = result.value
                 }
-            })
+
+                is Error -> logger.error("Failed to connect and  get the current user")
+            }
         }
     }
 

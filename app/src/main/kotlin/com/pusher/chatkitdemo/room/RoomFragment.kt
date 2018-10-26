@@ -11,7 +11,8 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.pusher.chatkit.*
+import com.pusher.chatkit.messages.Message
+import com.pusher.chatkit.rooms.Room
 import com.pusher.chatkitdemo.R
 import com.pusher.chatkitdemo.app
 import com.pusher.chatkitdemo.recyclerview.dataAdapterFor
@@ -65,14 +66,14 @@ class RoomFragment : Fragment() {
             sendButton.setOnClickListener {
                 messageInput.text.takeIf { it.isNotBlank() }?.let { text ->
                     state.let { it as? Ready }?.let { it.room.id }?.let { roomId ->
-                        senMessage(roomId, text)
+                        sendMessage(roomId, text)
                     }
                 }
             }
         }
     }
 
-    private fun senMessage(roomId: Int, text: CharSequence) = launch {
+    private fun sendMessage(roomId: Int, text: CharSequence) = launch {
         app.currentUser().apply {
             val item = Item.Pending(Item.Details(id, text))
             addItem(item)
