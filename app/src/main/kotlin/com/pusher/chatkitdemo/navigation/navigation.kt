@@ -12,7 +12,7 @@ import com.pusher.chatkitdemo.app
 private enum class Screen(val path: String, val authority: String = "chat.pusher.com") {
     ROOM("room/#") {
         override fun asNavigationEvent(uri: Uri): NavigationEvent =
-            NavigationEvent.room(uri.lastPathSegment.toInt())
+            NavigationEvent.room(uri.lastPathSegment)
     },
     MAIN("home") {
         override fun asNavigationEvent(uri: Uri): NavigationEvent =
@@ -40,7 +40,7 @@ private enum class Screen(val path: String, val authority: String = "chat.pusher
 sealed class NavigationEvent {
 
     companion object {
-        @JvmStatic fun room(roomId: Int): NavigationEvent = Room(roomId)
+        @JvmStatic fun room(roomId: String): NavigationEvent = Room(roomId)
         @JvmStatic fun main( userId: String): NavigationEvent = Main(userId)
         @JvmStatic fun withGitHubToken(token: String) : NavigationEvent = Entry.WithGitHubCode(token)
         @JvmStatic fun missingGitHubToken(): NavigationEvent = Entry.MissingGitHubToken
@@ -48,7 +48,7 @@ sealed class NavigationEvent {
         @JvmStatic fun unknown(uri: Uri): NavigationEvent = Unknown(uri)
     }
 
-    data class Room(val roomId: Int) : NavigationEvent()
+    data class Room(val roomId: String) : NavigationEvent()
     data class Main(val userId: String) : NavigationEvent()
     data class Unknown(val data: Uri) : NavigationEvent()
     object MissingUri : NavigationEvent()

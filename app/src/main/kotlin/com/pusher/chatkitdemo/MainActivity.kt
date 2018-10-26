@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         state = State.Idle
 
         launch {
-            state = Loaded(app.currentUser().rooms())
+            state = Loaded(app.currentUser().rooms.toSet())
         }
     }
 
