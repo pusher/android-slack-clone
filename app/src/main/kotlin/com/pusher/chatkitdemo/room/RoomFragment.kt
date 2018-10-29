@@ -55,36 +55,36 @@ class RoomFragment : Fragment() {
     }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
-        inflater.inflate(R.layout.fragment_room, container, false)
+            inflater.inflate(R.layout.fragment_room, container, false)
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        with(view) {
-            messageList.adapter = adapter
-            messageList.layoutManager = LinearLayoutManager(activity).apply {
-                reverseLayout = false
-                stackFromEnd = false
-            }
-            sendButton.setOnClickListener {
-                messageInput.text.takeIf { it.isNotBlank() }?.let { text ->
-                    state.let { it as? Ready }?.let { it.room.id }?.let { roomId ->
-                        sendMessage(roomId, text.toString())
-                    }
+
+        messageList.adapter = adapter
+        messageList.layoutManager = LinearLayoutManager(activity).apply {
+            reverseLayout = false
+            stackFromEnd = false
+        }
+        sendButton.setOnClickListener {
+            messageInput.text.takeIf { it.isNotBlank() }?.let { text ->
+                state.let { it as? Ready }?.let { it.room.id }?.let { roomId ->
+                    sendMessage(roomId, text.toString())
                 }
             }
         }
+
     }
 
     private fun sendMessage(roomId: String, text: String) = launch {
         app.currentUser().apply {
-            val item = Item.Pending(Item.Details(name ?: id , text))
+            val item = Item.Pending(Item.Details(name ?: id, text))
             addItem(item)
 
             sendMessage(
                     roomId = roomId,
-                    messageText = text.toString(),
+                    messageText = text,
                     callback = { result ->
-                        when(result){
+                        when (result) {
                             is Result.Success -> {
                                 removeItem(item)
                             }
@@ -99,7 +99,7 @@ class RoomFragment : Fragment() {
     }
 
     fun bind(roomId: String) = launch {
-        if(Looper.myLooper() == null)Looper.prepare() // Old version of the SDK uses a handle and breaks
+        if (Looper.myLooper() == null) Looper.prepare() // Old version of the SDK uses a handle and breaks
         with(app.currentUser()) {
 
             val room = rooms.find { it.id == roomId }
@@ -122,7 +122,7 @@ class RoomFragment : Fragment() {
                         }
                 )
             }
-            }
+        }
     }
 
     private fun addItem(item: Item) = launchOnUi {
@@ -168,7 +168,7 @@ class RoomFragment : Fragment() {
     }
 
     private fun renderNoMembership() =
-        renderIdle()
+            renderIdle()
 
 }
 
@@ -186,7 +186,7 @@ sealed class RoomState {
 
     data class Ready(val room: Room, val items: List<Item>) : RoomState()
 
-    data class Failed (val error: PusherError) : RoomState()
+    data class Failed(val error: PusherError) : RoomState()
 
     sealed class Item {
         abstract val details: Details
