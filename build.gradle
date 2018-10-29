@@ -2,10 +2,10 @@
 
 buildscript {
     ext {
-        kotlin_version = '1.2.40'
+        kotlin_version = '1.2.71'
         coroutines_version = '0.22.1'
         android_gradle_version = '3.1.2'
-        android_support_version = '27.1.1'
+        android_support_version = '28.0.0'
         android_arch_version = '1.1.1'
         mockito_version = '2.10.0'
         constraints_layout_version = '1.1.0'
@@ -19,7 +19,7 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath "com.android.tools.build:gradle:$android_gradle_version"
+        classpath "com.android.tools.build:gradle:3.2.1"
         classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
         classpath 'org.junit.platform:junit-platform-gradle-plugin:1.1.0'
         classpath 'de.mannodermaus.gradle.plugins:android-junit5:1.0.31'

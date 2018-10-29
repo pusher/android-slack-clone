@@ -6,7 +6,7 @@ import android.support.v7.app.AppCompatActivity
 import android.support.v7.widget.LinearLayoutManager
 import android.view.View.GONE
 import android.view.View.VISIBLE
-import com.pusher.chatkit.Room
+import com.pusher.chatkit.rooms.Room
 import com.pusher.chatkitdemo.MainActivity.State.Loaded
 import com.pusher.chatkitdemo.navigation.open
 import com.pusher.chatkitdemo.recyclerview.dataAdapterFor
@@ -44,7 +44,7 @@ class MainActivity : AppCompatActivity() {
         state = State.Idle
 
         launch {
-            state = Loaded(app.currentUser().rooms())
+            state = Loaded(app.currentUser().rooms.toSet())
         }
     }
 

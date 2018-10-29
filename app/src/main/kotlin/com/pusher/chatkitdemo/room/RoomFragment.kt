@@ -11,9 +11,10 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import com.pusher.chatkit.*
+import com.pusher.chatkit.rooms.Room
+import com.pusher.chatkit.rooms.RoomListeners
+import com.pusher.chatkitdemo.ChatKitDemoApp.Companion.app
 import com.pusher.chatkitdemo.R
-import com.pusher.chatkitdemo.app
 import com.pusher.chatkitdemo.recyclerview.dataAdapterFor
 import com.pusher.chatkitdemo.showOnly
 import kotlinx.android.synthetic.main.fragment_room.*
@@ -24,6 +25,7 @@ import kotlinx.coroutines.experimental.CoroutineScope
 import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import com.pusher.chatkitdemo.room.RoomState.*
+import com.pusher.util.Result
 import kotlinx.coroutines.experimental.Job
 import kotlin.properties.Delegates
 
@@ -60,61 +62,67 @@ class RoomFragment : Fragment() {
         with(view) {
             messageList.adapter = adapter
             messageList.layoutManager = LinearLayoutManager(activity).apply {
-                reverseLayout = true
+                reverseLayout = false
+                stackFromEnd = false
             }
             sendButton.setOnClickListener {
                 messageInput.text.takeIf { it.isNotBlank() }?.let { text ->
                     state.let { it as? Ready }?.let { it.room.id }?.let { roomId ->
-                        senMessage(roomId, text)
+                        sendMessage(roomId, text.toString())
                     }
                 }
             }
         }
     }
 
-    private fun senMessage(roomId: Int, text: CharSequence) = launch {
+    private fun sendMessage(roomId: String, text: String) = launch {
         app.currentUser().apply {
-            val item = Item.Pending(Item.Details(id, text))
+            val item = Item.Pending(Item.Details(name ?: id , text))
             addItem(item)
+
             sendMessage(
-                roomId = roomId,
-                text = text.toString(),
-                attachment = null,
-                onCompleteListener = MessageSentListener {
-                    removeItem(item)
-                    addItem(item.details.let { (userName, message) ->
-                        Item.Loaded(Item.Details(userName, message))
-                    })
-                },
-                onErrorListener = ErrorListener { error ->
-                    removeItem(item)
-                    addItem(item.details.let { (userName, message) ->
-                        Item.Failed(Item.Details(userName, message), error)
-                    })
-                }
+                    roomId = roomId,
+                    messageText = text.toString(),
+                    callback = { result ->
+                        when(result){
+                            is Result.Success -> {
+                                removeItem(item)
+                            }
+                            is Result.Failure -> {
+                                removeItem(item)
+                            }
+
+                        }
+                    }
             )
         }
     }
 
-    fun bind(roomId: Int) = launch {
+    fun bind(roomId: String) = launch {
         if(Looper.myLooper() == null)Looper.prepare() // Old version of the SDK uses a handle and breaks
         with(app.currentUser()) {
-            val room = getRoom(roomId)
+
+            val room = rooms.find { it.id == roomId }
             when (room) {
                 null -> renderFailed(Error("Room not found"))
-                else -> subscribeToRoom(room, messageLimit = 20, listeners = object : RoomSubscriptionListeners {
-                    override fun onError(error: PusherError) {
-                        state = RoomState.Failed(error)
-                    }
-
-                    override fun onNewMessage(message: Message) {
-                        addItem(Item.Loaded(Item.Details(message.user?.name ?: "???", message.text ?: "---")))
-                    }
-
-                })
+                else -> subscribeToRoom(
+                        room,
+                        messageLimit = 20,
+                        listeners = RoomListeners(
+                                onErrorOccurred = { error ->
+                                    state = Failed(error)
+                                },
+                                onMessage = { message ->
+                                    addItem(Item.Loaded(Item.Details(message.user?.name
+                                            ?: "???", message.text ?: "---")))
+                                }
+                        ),
+                        callback = { subscription ->
+                            state = Ready(room, emptyList())
+                        }
+                )
             }
-
-        }
+            }
     }
 
     private fun addItem(item: Item) = launchOnUi {
@@ -187,7 +195,7 @@ sealed class RoomState {
         data class Pending(override val details: Details) : Item()
         data class Failed(override val details: Details, val error: PusherError) : Item()
 
-        data class Details(val userName: CharSequence, val message: CharSequence)
+        data class Details(val userName: String, val message: String)
 
     }
 
