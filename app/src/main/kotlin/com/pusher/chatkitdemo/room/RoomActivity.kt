@@ -26,7 +26,5 @@ class RoomActivity : AppCompatActivity() {
             is NavigationEvent.Room -> (roomFragment as RoomFragment).bind(event.roomId)
             else -> failNavigation(event)
         }
-
     }
-
 }

@@ -26,6 +26,7 @@ import kotlinx.coroutines.experimental.android.UI
 import kotlinx.coroutines.experimental.launch
 import com.pusher.chatkitdemo.room.RoomState.*
 import com.pusher.util.Result
+import elements.Subscription
 import kotlinx.coroutines.experimental.Job
 import kotlin.properties.Delegates
 
@@ -48,7 +49,7 @@ class RoomFragment : Fragment() {
             userNameView.text = details.userName
             messageView.text = details.message
         }
-        on<Item.Failed>(R.layout.item_message_pending) { (details, error) ->
+        on<Item.Failed>(R.layout.item_message_pending) { (details, _) ->
             userNameView.text = details.userName
             messageView.text = details.message
         }
@@ -59,20 +60,26 @@ class RoomFragment : Fragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        with(view) {
-            messageList.adapter = adapter
-            messageList.layoutManager = LinearLayoutManager(activity).apply {
-                reverseLayout = false
-                stackFromEnd = false
-            }
-            sendButton.setOnClickListener {
-                messageInput.text.takeIf { it.isNotBlank() }?.let { text ->
-                    state.let { it as? Ready }?.let { it.room.id }?.let { roomId ->
-                        sendMessage(roomId, text.toString())
-                    }
+
+        messageList.adapter = adapter
+        messageList.layoutManager = LinearLayoutManager(activity).apply {
+            reverseLayout = false
+            stackFromEnd = false
+        }
+        sendButton.setOnClickListener {
+            messageInput.text.takeIf { it.isNotBlank() }?.let { text ->
+                state.let { it as? Ready }?.let { it.room.id }?.let { roomId ->
+                    sendMessage(roomId, text.toString())
+                    messageInput.text.clear()
                 }
             }
         }
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+
+        state.let { it as? Ready }?.sub?.unsubscribe()
     }
 
     private fun sendMessage(roomId: String, text: String) = launch {
@@ -82,16 +89,15 @@ class RoomFragment : Fragment() {
 
             sendMessage(
                     roomId = roomId,
-                    messageText = text.toString(),
+                    messageText = text,
                     callback = { result ->
-                        when(result){
+                        when (result){
                             is Result.Success -> {
                                 removeItem(item)
                             }
                             is Result.Failure -> {
                                 removeItem(item)
                             }
-
                         }
                     }
             )
@@ -100,8 +106,8 @@ class RoomFragment : Fragment() {
 
     fun bind(roomId: String) = launch {
         if(Looper.myLooper() == null)Looper.prepare() // Old version of the SDK uses a handle and breaks
-        with(app.currentUser()) {
 
+        with (app.currentUser()) {
             val room = rooms.find { it.id == roomId }
             when (room) {
                 null -> renderFailed(Error("Room not found"))
@@ -113,16 +119,22 @@ class RoomFragment : Fragment() {
                                     state = Failed(error)
                                 },
                                 onMessage = { message ->
-                                    addItem(Item.Loaded(Item.Details(message.user?.name
-                                            ?: "???", message.text ?: "---")))
+                                    addItem(
+                                            Item.Loaded(
+                                                    Item.Details(
+                                                            userName = message.user?.name ?: "???",
+                                                            message = message.text ?: "---"
+                                                    )
+                                            )
+                                    )
                                 }
                         ),
                         callback = { subscription ->
-                            state = Ready(room, emptyList())
+                            state = Ready(room, subscription, emptyList())
                         }
                 )
             }
-            }
+        }
     }
 
     private fun addItem(item: Item) = launchOnUi {
@@ -137,9 +149,6 @@ class RoomFragment : Fragment() {
 
     private fun RoomState.render(): Job = when (this) {
         is Initial -> renderIdle()
-        is Idle -> renderIdle()
-        is NoMembership -> renderNoMembership()
-        is RoomLoaded -> renderLoadedRoom(room)
         is Ready -> renderLoadedCompletely(room, items)
         is Failed -> renderFailed(Error("$error"))
     }
@@ -148,11 +157,6 @@ class RoomFragment : Fragment() {
     private fun renderIdle() = launchOnUi {
         views.showOnly(idleLayout)
         adapter.data = emptyList()
-    }
-
-    private fun renderLoadedRoom(room: Room) = launchOnUi {
-        views.showOnly(loadedLayout)
-        activity?.title = room.coolName
     }
 
     private fun renderLoadedCompletely(room: Room, messages: List<RoomState.Item>) = launchOnUi {
@@ -166,10 +170,6 @@ class RoomFragment : Fragment() {
         errorMessageView.text = error.message
         retryButton.visibility = View.GONE // TODO: Retry button
     }
-
-    private fun renderNoMembership() =
-        renderIdle()
-
 }
 
 private fun LifecycleOwner.launchOnUi(block: suspend CoroutineScope.() -> Unit) = when {
@@ -180,12 +180,7 @@ private fun LifecycleOwner.launchOnUi(block: suspend CoroutineScope.() -> Unit) 
 sealed class RoomState {
 
     object Initial : RoomState()
-    data class Idle(val roomId: Int) : RoomState()
-    data class NoMembership(val room: Room) : RoomState()
-    data class RoomLoaded(val room: Room) : RoomState()
-
-    data class Ready(val room: Room, val items: List<Item>) : RoomState()
-
+    data class Ready(val room: Room, val sub: Subscription, val items: List<Item>) : RoomState()
     data class Failed (val error: PusherError) : RoomState()
 
     sealed class Item {
@@ -196,8 +191,5 @@ sealed class RoomState {
         data class Failed(override val details: Details, val error: PusherError) : Item()
 
         data class Details(val userName: String, val message: String)
-
     }
-
 }
-
