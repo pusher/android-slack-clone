@@ -12,7 +12,7 @@ buildscript {
         espresso_version = '3.0.1'
         espresso_runner_version = '1.0.1'
         junit_legacy_version = '4.12'
-        pusher_platform_version = '0.3.0'
+        chatkit_android_version = '1.0.+'
     }
     repositories {
         google()
@@ -28,6 +28,7 @@ buildscript {
 
 allprojects {
     repositories {
+        mavenLocal()
         google()
         jcenter()
         mavenCentral()

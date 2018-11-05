@@ -56,7 +56,7 @@ dependencies {
     implementation "android.arch.lifecycle:extensions:$android_arch_version"
     implementation "android.arch.lifecycle:common:$android_arch_version"
     implementation "com.android.support:customtabs:$android_support_version"
-    implementation "com.pusher:chatkit-android:0.99SNAPSHOT"
+    implementation "com.pusher:chatkit-android:$chatkit_android_version"
 
     testImplementation "junit:junit:$junit_legacy_version"
 
