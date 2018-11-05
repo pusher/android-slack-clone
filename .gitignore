@@ -12,3 +12,6 @@ build
 # Gradle Android
 /local.properties
 /captures
+gradle
+gradlew
+gradlew.bat
