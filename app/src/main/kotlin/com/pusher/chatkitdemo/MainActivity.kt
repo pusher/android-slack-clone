@@ -79,6 +79,4 @@ class MainActivity : AppCompatActivity() {
         data class Loaded(val rooms: Set<Room>) : State()
         data class Failed(val error: Error) : State()
     }
-
 }
-

@@ -1,7 +1,7 @@
 package com.pusher.chatkitdemo
 
 import android.content.Context
-import android.content.Context.*
+import android.content.Context.MODE_PRIVATE
 import kotlin.properties.ReadWriteProperty
 import kotlin.reflect.KProperty
 
@@ -22,9 +22,9 @@ private class SharedPreferencesExtension(context: Context, name: String) {
 
     fun string(key: String) = object : ReadWriteProperty<Any?, String?> {
         override operator fun setValue(thisRef: Any?, property: KProperty<*>, value: String?) =
-            preferences.edit().putString(key, value).apply()
+                preferences.edit().putString(key, value).apply()
 
         override operator fun getValue(thisRef: Any?, property: KProperty<*>): String? =
-            preferences.getString(key, null)
+                preferences.getString(key, null)
     }
 }

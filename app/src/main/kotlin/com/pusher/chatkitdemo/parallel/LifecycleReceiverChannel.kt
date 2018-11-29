@@ -12,13 +12,13 @@ import kotlinx.coroutines.experimental.channels.toChannel
 import kotlinx.coroutines.experimental.launch
 
 fun <A> LifecycleOwner.onLifecycle(block: () -> ReceiveChannel<A>): ReceiveChannel<A> =
-    LifecycleReceiverChannel(this.lifecycle, block)
+        LifecycleReceiverChannel(this.lifecycle, block)
 
 private class LifecycleReceiverChannel<out A>(
-    lifecycle: Lifecycle,
-    private val block: () -> ReceiveChannel<A>,
-    private val broadcastChannel: BroadcastChannel<A> = BroadcastChannel(Channel.CONFLATED),
-    private val subscription: ReceiveChannel<A> = broadcastChannel.openSubscription()
+        lifecycle: Lifecycle,
+        private val block: () -> ReceiveChannel<A>,
+        private val broadcastChannel: BroadcastChannel<A> = BroadcastChannel(Channel.CONFLATED),
+        private val subscription: ReceiveChannel<A> = broadcastChannel.openSubscription()
 ) : ReceiveChannel<A> by subscription, LifecycleObserver {
 
     private var channel: ReceiveChannel<A>? = null

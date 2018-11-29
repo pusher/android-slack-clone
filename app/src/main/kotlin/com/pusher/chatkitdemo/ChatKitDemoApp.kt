@@ -3,13 +3,13 @@ package com.pusher.chatkitdemo
 import android.app.Application
 import android.content.Context
 import android.support.v4.app.Fragment
-import com.pusher.chatkit.*
-import com.pusher.chatkit.rooms.Room
-import com.pusher.chatkit.users.User
+import com.pusher.chatkit.AndroidChatkitDependencies
+import com.pusher.chatkit.ChatManager
+import com.pusher.chatkit.ChatkitTokenProvider
+import com.pusher.chatkit.CurrentUser
 import com.pusher.platform.logger.AndroidLogger
 import com.pusher.platform.logger.LogLevel
 import com.pusher.platform.logger.Logger
-import com.pusher.platform.tokenProvider.TokenProvider
 import com.pusher.util.Result
 import elements.Error
 import kotlinx.coroutines.experimental.channels.BroadcastChannel
@@ -46,7 +46,7 @@ class ChatKitDemoApp : Application() {
             tryConnect(value, token)
         }
 
-    var token : String?
+    var token: String?
         get() = userPreferences.token
         set(value) {
             userPreferences.token = value
@@ -70,9 +70,9 @@ class ChatKitDemoApp : Application() {
                 tokenProvider = ChatkitTokenProvider(
                         endpoint = "$TOKEN_PROVIDER_ENDPOINT?token=$token",
                         userId = userId
-                )
+                ),
+                context = applicationContext
         )
-
 
         chat = ChatManager(
                 instanceLocator = INSTANCE_LOCATOR,
@@ -81,7 +81,7 @@ class ChatKitDemoApp : Application() {
         )
 
         chat.connect { result ->
-            when(result) {
+            when (result) {
                 is Result.Success -> {
                     currentUser = result.value
                 }

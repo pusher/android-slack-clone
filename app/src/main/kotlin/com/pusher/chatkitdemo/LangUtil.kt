@@ -5,4 +5,4 @@ package com.pusher.chatkitdemo
  */
 inline fun <reified T> nameOf(): String = nameOf(T::class.java)
 
-fun <T> nameOf(type: Class<T>) : String = type.simpleName
+fun <T> nameOf(type: Class<T>): String = type.simpleName

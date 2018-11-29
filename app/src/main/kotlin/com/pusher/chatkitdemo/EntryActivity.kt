@@ -106,9 +106,9 @@ class EntryViewModel : ViewModel() {
         private const val callbackUri = "https://chatkit-demo-server.herokuapp.com/success?url=chatkit://auth"
 
         const val gitHubAuthUrl = "https://github.com/login/oauth/authorize" +
-            "?client_id=$gitHubClientId" +
-            "&scope=user:email" +
-            "&redirect_uri=$callbackUri"
+                "?client_id=$gitHubClientId" +
+                "&scope=user:email" +
+                "&redirect_uri=$callbackUri"
     }
 
     private val stateBroadcast = BroadcastChannel<EntryActivity.State>(Channel.CONFLATED)
@@ -166,9 +166,9 @@ class EntryViewModel : ViewModel() {
     }
 
     private fun <A> A.toJson(): String =
-        gson.toJson(this)
+            gson.toJson(this)
 
     private inline fun <reified A> ResponseBody.fromJson(): A =
-        gson.fromJson(this.charStream(), A::class.java)
+            gson.fromJson(this.charStream(), A::class.java)
 
 }

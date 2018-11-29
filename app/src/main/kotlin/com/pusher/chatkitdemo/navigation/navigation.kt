@@ -12,16 +12,16 @@ import com.pusher.chatkitdemo.app
 private enum class Screen(val path: String, val authority: String = "chat.pusher.com") {
     ROOM("room/#") {
         override fun asNavigationEvent(uri: Uri): NavigationEvent =
-            NavigationEvent.room(uri.lastPathSegment)
+                NavigationEvent.room(uri.lastPathSegment)
     },
     MAIN("home") {
         override fun asNavigationEvent(uri: Uri): NavigationEvent =
-            NavigationEvent.main(uri.getQueryParameter("userId"))
+                NavigationEvent.main(uri.getQueryParameter("userId"))
     },
     ENTRY("/", "auth") {
         override fun asNavigationEvent(uri: Uri): NavigationEvent = with(uri) {
             val token = getQueryParameter("code")
-            when(token) {
+            when (token) {
                 null -> NavigationEvent.missingGitHubToken()
                 else -> NavigationEvent.withGitHubToken(token)
             }
@@ -32,20 +32,31 @@ private enum class Screen(val path: String, val authority: String = "chat.pusher
     abstract fun asNavigationEvent(uri: Uri): NavigationEvent
 
     companion object {
-        fun find(ordinal: Int) : Screen? =
-            values().getOrNull(ordinal)
+        fun find(ordinal: Int): Screen? =
+                values().getOrNull(ordinal)
     }
 }
 
 sealed class NavigationEvent {
 
     companion object {
-        @JvmStatic fun room(roomId: String): NavigationEvent = Room(roomId)
-        @JvmStatic fun main( userId: String): NavigationEvent = Main(userId)
-        @JvmStatic fun withGitHubToken(token: String) : NavigationEvent = Entry.WithGitHubCode(token)
-        @JvmStatic fun missingGitHubToken(): NavigationEvent = Entry.MissingGitHubToken
-        @JvmStatic fun missingUri(): NavigationEvent = MissingUri
-        @JvmStatic fun unknown(uri: Uri): NavigationEvent = Unknown(uri)
+        @JvmStatic
+        fun room(roomId: String): NavigationEvent = Room(roomId)
+
+        @JvmStatic
+        fun main(userId: String): NavigationEvent = Main(userId)
+
+        @JvmStatic
+        fun withGitHubToken(token: String): NavigationEvent = Entry.WithGitHubCode(token)
+
+        @JvmStatic
+        fun missingGitHubToken(): NavigationEvent = Entry.MissingGitHubToken
+
+        @JvmStatic
+        fun missingUri(): NavigationEvent = MissingUri
+
+        @JvmStatic
+        fun unknown(uri: Uri): NavigationEvent = Unknown(uri)
     }
 
     data class Room(val roomId: String) : NavigationEvent()
@@ -66,27 +77,28 @@ val Intent.navigationEvent: NavigationEvent
     get() = data.navigationEvent
 
 val Uri?.navigationEvent: NavigationEvent
-    get() = when(this) {
+    get() = when (this) {
         null -> NavigationEvent.missingUri()
-        else -> Screen.find(uriMatcher.match(this))?.asNavigationEvent(this) ?: NavigationEvent.unknown(this)
+        else -> Screen.find(uriMatcher.match(this))?.asNavigationEvent(this)
+                ?: NavigationEvent.unknown(this)
     }
 
 fun Context.openIntent(path: String) =
-    Intent(Intent.ACTION_VIEW, Uri.parse(path)).apply {
-        `package` = packageName
-    }
+        Intent(Intent.ACTION_VIEW, Uri.parse(path)).apply {
+            `package` = packageName
+        }
 
 fun Context.open(path: String) =
-    startActivity(openIntent(path))
+        startActivity(openIntent(path))
 
 fun Context.openInBrowser(path: String) =
-    CustomTabsIntent.Builder().build().launchUrl(this, Uri.parse(path))
+        CustomTabsIntent.Builder().build().launchUrl(this, Uri.parse(path))
 
 fun Context.open(room: Room) =
-    open("https://chat.pusher.com/room/${room.id}")
+        open("https://chat.pusher.com/room/${room.id}")
 
 fun Context.openMain(userId: String) =
-    open("https://chat.pusher.com/home?userId=$userId")
+        open("https://chat.pusher.com/home?userId=$userId")
 
 fun Activity.failNavigation(navigationEvent: NavigationEvent) {
     app.logger.error("Failed to load navigation: $navigationEvent")
