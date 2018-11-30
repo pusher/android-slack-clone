@@ -83,7 +83,10 @@ class ChatKitDemoApp : Application() {
         chat.connect { result ->
             when (result) {
                 is Result.Success -> {
-                    currentUser = result.value
+                    result.value.let { user ->
+                        currentUser = user
+                        user.enablePushNotifications()
+                    }
                 }
 
                 is Error -> logger.error("Failed to connect and  get the current user")

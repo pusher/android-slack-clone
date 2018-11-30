@@ -4,13 +4,13 @@ apply plugin: 'kotlin-android-extensions'
 apply from: "$rootDir/gradle/android/buildConfig.gradle"
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 27
     buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "com.pusher.chatkitdemo"
         minSdkVersion 19
-        targetSdkVersion 28
+        targetSdkVersion 27
         versionCode 1
         versionName "1.0"
 
@@ -57,9 +57,12 @@ dependencies {
     implementation "android.arch.lifecycle:common:$android_arch_version"
     implementation "com.android.support:customtabs:$android_support_version"
     implementation "com.pusher:chatkit-android:$chatkit_android_version"
+    implementation 'com.google.firebase:firebase-messaging:17.1.0'
 
     testImplementation "junit:junit:$junit_legacy_version"
 
     androidTestImplementation "com.android.support.test:runner:$espresso_runner_version"
     androidTestImplementation "com.android.support.test.espresso:espresso-core:$espresso_version"
 }
+
+apply plugin: 'com.google.gms.google-services'
