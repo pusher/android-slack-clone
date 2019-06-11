@@ -14,10 +14,14 @@ import com.pusher.chatkitdemo.room.coolName
 import elements.Error
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.item_room.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 import kotlin.properties.Delegates
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.android.synthetic.main.activity_main.room_list as roomListView
+
+import android.util.Log
 
 class MainActivity : AppCompatActivity() {
 
@@ -33,6 +37,7 @@ class MainActivity : AppCompatActivity() {
         state.render()
     }
 
+    @ExperimentalCoroutinesApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -43,15 +48,20 @@ class MainActivity : AppCompatActivity() {
 
         state = State.Idle
 
-        launch {
+
+
+        GlobalScope.launch {
             state = Loaded(app.currentUser().rooms.toSet())
+
         }
+
+
     }
 
     private fun State.render() = when (this) {
-        is State.Idle -> launch(UI) { renderIdle() }
-        is State.Loaded -> launch(UI) { renderLoaded(rooms) }
-        is State.Failed -> launch(UI) { renderFailed(error) }
+        is State.Idle -> GlobalScope.launch(Dispatchers.Main) { renderIdle() }
+        is State.Loaded -> GlobalScope.launch(Dispatchers.Main) { renderLoaded(rooms) }
+        is State.Failed -> GlobalScope.launch(Dispatchers.Main) { renderFailed(error) }
     }
 
     private fun renderIdle() {

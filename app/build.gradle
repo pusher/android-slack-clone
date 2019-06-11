@@ -1,19 +1,19 @@
 apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
-apply from: "$rootDir/gradle/android/buildConfig.gradle"
+//apply from: "$rootDir/gradle/android/buildConfig.gradle"
 
 android {
-    compileSdkVersion 27
+    compileSdkVersion 28
     buildToolsVersion '28.0.3'
 
     defaultConfig {
         applicationId "com.pusher.chatkitdemo"
         minSdkVersion 19
-        targetSdkVersion 27
+        targetSdkVersion 28
         versionCode 1
         versionName "1.0"
-
+        multiDexEnabled true
         testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
 
     }
@@ -36,12 +36,6 @@ android {
 
 }
 
-kotlin {
-    experimental {
-        coroutines 'enable'
-    }
-}
-
 androidExtensions {
     experimental = true
 }
@@ -57,7 +51,10 @@ dependencies {
     implementation "android.arch.lifecycle:common:$android_arch_version"
     implementation "com.android.support:customtabs:$android_support_version"
     implementation "com.pusher:chatkit-android:$chatkit_android_version"
-    implementation 'com.google.firebase:firebase-messaging:17.1.0'
+    implementation 'com.google.firebase:firebase-core:16.0.9'
+    implementation 'com.google.firebase:firebase-messaging:18.0.0'
+    implementation 'com.android.support:multidex:1.0.3'
+    implementation 'com.android.support:coordinatorlayout:28.0.0'
 
     testImplementation "junit:junit:$junit_legacy_version"
 

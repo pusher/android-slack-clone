@@ -1,0 +1,48 @@
+{
+  "project_info": {
+    "project_number": "766034663425",
+    "firebase_url": "https://android-slack-clone-8d5c2.firebaseio.com",
+    "project_id": "android-slack-clone-8d5c2",
+    "storage_bucket": "android-slack-clone-8d5c2.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:766034663425:android:dec78a12148c3f46",
+        "android_client_info": {
+          "package_name": "com.pusher.chatkitdemo"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "766034663425-o4udk24s8gev7gcnupnn72g9if2ihamn.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.pusher.chatkitdemo",
+            "certificate_hash": "f2d7e4b1442dc739bac2e5e1e5a63babbd6420c8"
+          }
+        },
+        {
+          "client_id": "766034663425-f863r5er748hetun3qoo7glnesn2vjcp.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAEUyxhVQ6IzH7uziauaAahYjO0OJrN0pg"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "766034663425-f863r5er748hetun3qoo7glnesn2vjcp.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

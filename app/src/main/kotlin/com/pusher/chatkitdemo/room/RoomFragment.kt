@@ -11,6 +11,9 @@ import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import com.pusher.chatkit.messages.multipart.NewPart
+import com.pusher.chatkit.messages.multipart.Payload
+import com.pusher.chatkit.messages.multipart.Payload.Inline
 import com.pusher.chatkit.rooms.Room
 import com.pusher.chatkit.rooms.RoomListeners
 import com.pusher.chatkitdemo.ChatKitDemoApp.Companion.app
@@ -24,10 +27,7 @@ import kotlinx.android.synthetic.main.fragment_room.*
 import kotlinx.android.synthetic.main.fragment_room_loaded.*
 import kotlinx.android.synthetic.main.include_error.*
 import kotlinx.android.synthetic.main.item_message.*
-import kotlinx.coroutines.experimental.CoroutineScope
-import kotlinx.coroutines.experimental.Job
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.*
 import kotlin.properties.Delegates
 
 typealias PusherError = elements.Error
@@ -65,6 +65,7 @@ class RoomFragment : Fragment() {
         messageList.layoutManager = LinearLayoutManager(activity).apply {
             reverseLayout = false
             stackFromEnd = false
+            isSmoothScrollbarEnabled = true
         }
         sendButton.setOnClickListener {
             messageInput.text.takeIf { it.isNotBlank() }?.let { text ->
@@ -82,14 +83,15 @@ class RoomFragment : Fragment() {
         state.let { it as? Ready }?.sub?.unsubscribe()
     }
 
-    private fun sendMessage(roomId: String, text: String) = launch {
+    @ExperimentalCoroutinesApi
+    private fun sendMessage(roomId: String, text: String) = GlobalScope.launch {
         app.currentUser().apply {
             val item = Item.Pending(Item.Details(name ?: id, text))
             addItem(item)
 
-            sendMessage(
+            sendMultipartMessage(
                     roomId = roomId,
-                    messageText = text,
+                    parts = listOf(NewPart.Inline(text, "text/plain")),
                     callback = { result ->
                         when (result) {
                             is Result.Success -> {
@@ -104,33 +106,58 @@ class RoomFragment : Fragment() {
         }
     }
 
-    fun bind(roomId: String) = launch {
-        if (Looper.myLooper() == null) Looper.prepare() // Old version of the SDK uses a handle and breaks
+    @ExperimentalCoroutinesApi
+    fun bind(roomId: String) = GlobalScope.launch {
+        // if (Looper.myLooper() == null) Looper.prepare() // Old version of the SDK uses a handle and breaks
 
         with(app.currentUser()) {
             val room = rooms.find { it.id == roomId }
+            var messagecontent: String = ""
             when (room) {
                 null -> renderFailed(Error("Room not found"))
-                else -> subscribeToRoom(
-                        room,
+                else -> subscribeToRoomMultipart(
+                        room = room,
                         messageLimit = 20,
                         listeners = RoomListeners(
                                 onErrorOccurred = { error ->
                                     state = Failed(error)
                                 },
-                                onMessage = { message ->
+                                onMultipartMessage = { message ->
+                                    message.parts.forEach { part ->
+                                        val payload = part.payload
+                                        when (payload) {
+                                            is Inline -> {
+                                                messagecontent = payload.content
+                                            }
+                                            is Payload.Url -> {
+                                            }
+                                            is Payload.Attachment -> {
+                                            }
+                                            else -> {
+                                            }
+                                        }
+                                    }
+
+                                    Log.d("messageadded", message.sender?.name)
+
                                     addItem(
                                             Item.Loaded(
                                                     Item.Details(
-                                                            userName = message.user?.name ?: "???",
-                                                            message = message.text ?: "---"
+                                                            userName = message.sender?.name
+                                                                    ?: "???",
+                                                            message = messagecontent ?: "----"
                                                     )
                                             )
                                     )
+
+
                                 }
                         ),
+
+
                         callback = { subscription ->
-                            state = Ready(room, subscription, emptyList())
+                            Log.d("roomready", "ready")
+                            state = Ready(room, subscription, adapter.data)
                         }
                 )
             }
@@ -139,6 +166,7 @@ class RoomFragment : Fragment() {
 
     private fun addItem(item: Item) = launchOnUi {
         adapter.data = adapter.data + item
+        messageList.scrollToPosition(adapter.itemCount - 1)
     }
 
 
@@ -173,8 +201,8 @@ class RoomFragment : Fragment() {
 }
 
 private fun LifecycleOwner.launchOnUi(block: suspend CoroutineScope.() -> Unit) = when {
-    lifecycle.currentState > STARTED -> launch(context = UI, block = block)
-    else -> launch { Log.d("Boo", "Unexpected lifecycle state: ${lifecycle.currentState}") }
+    lifecycle.currentState > STARTED -> GlobalScope.launch(context = Dispatchers.Main, block = block)
+    else -> GlobalScope.launch { Log.d("Boo", "Unexpected lifecycle state: ${lifecycle.currentState}") }
 }
 
 sealed class RoomState {
