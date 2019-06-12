@@ -17,7 +17,7 @@ import kotlinx.coroutines.experimental.channels.Channel
 import kotlin.properties.Delegates
 
 private const val INSTANCE_LOCATOR = "v1:us1:05f46048-3763-4482-9cfe-51ff327c3f29"
-private const val TOKEN_PROVIDER_ENDPOINT = "https://chatkit-demo-server.herokuapp.com/token"
+private const val TOKEN_PROVIDER_ENDPOINT = "https://chatkit-demoauth-server.herokuapp.com/token"
 
 val Context.app: ChatKitDemoApp
     get() = when (applicationContext) {
@@ -85,7 +85,7 @@ class ChatKitDemoApp : Application() {
                 is Result.Success -> {
                     result.value.let { user ->
                         currentUser = user
-                        user.enablePushNotifications()
+                        user.enablePushNotifications {  }
                     }
                 }
 

@@ -7,3 +7,12 @@
 
 
 # WIP (watch this space)
+
+# Building Project
+
+1. Create your own google-services.json on Firebase (make sure the package is `com.pusher.chatkitdemo`)
+2. Click Play
+
+To use the demo app requires logging in with GitHub, which then creates you a user on the test instance of chatkit. You need to be invited into a room from another member before you will see any rooms to join.
+
+This app points to the same instance as https://github.com/pusher/react-slack-clone

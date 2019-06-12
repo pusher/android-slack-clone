@@ -103,7 +103,7 @@ class EntryViewModel : ViewModel() {
 
     private object Github {
         private const val gitHubClientId = "20cdd317000f92af12fe"
-        private const val callbackUri = "https://chatkit-demo-server.herokuapp.com/success?url=chatkit://auth"
+        private const val callbackUri = "https://chatkit-demoauth-server.herokuapp.com/success?url=chatkit://auth"
 
         const val gitHubAuthUrl = "https://github.com/login/oauth/authorize" +
                 "?client_id=$gitHubClientId" +
@@ -149,7 +149,7 @@ class EntryViewModel : ViewModel() {
             if (Looper.myLooper() == null) Looper.prepare()
             val requestBody = RequestBody.create(MediaType.parse("text/plain"), AuthRequestBody(code).toJson())
             val request = Request.Builder().apply {
-                url("https://chatkit-demo-server.herokuapp.com/auth")
+                url("https://chatkit-demoauth-server.herokuapp.com/auth")
                 post(requestBody)
             }.build()
             val response = client.newCall(request).execute()
