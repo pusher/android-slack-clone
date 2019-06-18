@@ -137,8 +137,7 @@ class RoomFragment : Fragment() {
                                             }
                                         }
                                     }
-
-                                    Log.d("messageadded", message.sender?.name)
+                                    Log.d("Slackclone", "Message added" + message.sender?.name)
 
                                     addItem(
                                             Item.Loaded(
@@ -156,7 +155,7 @@ class RoomFragment : Fragment() {
 
 
                         callback = { subscription ->
-                            Log.d("roomready", "ready")
+                            Log.d("Slackclone", "Room Ready")
                             state = Ready(room, subscription, adapter.data)
                         }
                 )
@@ -202,7 +201,7 @@ class RoomFragment : Fragment() {
 
 private fun LifecycleOwner.launchOnUi(block: suspend CoroutineScope.() -> Unit) = when {
     lifecycle.currentState > STARTED -> GlobalScope.launch(context = Dispatchers.Main, block = block)
-    else -> GlobalScope.launch { Log.d("Boo", "Unexpected lifecycle state: ${lifecycle.currentState}") }
+    else -> GlobalScope.launch { Log.d("Slackclone", "Unexpected lifecycle state: ${lifecycle.currentState}") }
 }
 
 sealed class RoomState {
