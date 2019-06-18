@@ -1,14 +1,18 @@
 package com.pusher.chatkitdemo.parallel
 
-import kotlinx.coroutines.experimental.channels.BroadcastChannel
-import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.GlobalScope
 
 
+@ExperimentalCoroutinesApi
 fun <A> lazyBroadcast(block: suspend BroadcastChannel<A>.() -> Unit = {}) =
         lazy { broadcast(block) }
 
+@ExperimentalCoroutinesApi
 fun <A> broadcast(block: suspend BroadcastChannel<A>.() -> Unit = {}) =
         BroadcastChannel<A>(Channel.CONFLATED).also {
-            launch { block(it) }
+            GlobalScope.launch { block(it) }
         }

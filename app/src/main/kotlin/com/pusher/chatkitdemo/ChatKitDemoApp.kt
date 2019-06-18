@@ -12,12 +12,13 @@ import com.pusher.platform.logger.LogLevel
 import com.pusher.platform.logger.Logger
 import com.pusher.util.Result
 import elements.Error
-import kotlinx.coroutines.experimental.channels.BroadcastChannel
-import kotlinx.coroutines.experimental.channels.Channel
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
 import kotlin.properties.Delegates
 
 private const val INSTANCE_LOCATOR = "v1:us1:05f46048-3763-4482-9cfe-51ff327c3f29"
-private const val TOKEN_PROVIDER_ENDPOINT = "https://chatkit-demo-server.herokuapp.com/token"
+private const val TOKEN_PROVIDER_ENDPOINT = "https://chatkit-demoauth-server.herokuapp.com/token"
 
 val Context.app: ChatKitDemoApp
     get() = when (applicationContext) {
@@ -53,6 +54,7 @@ class ChatKitDemoApp : Application() {
             tryConnect(userId, value)
         }
 
+    @ExperimentalCoroutinesApi
     private fun tryConnect(userId: String?, token: String?) = when {
         userId != null && token != null -> connect(userId, token)
         else -> Unit // ignore
@@ -64,6 +66,7 @@ class ChatKitDemoApp : Application() {
         maybeApp = this
     }
 
+    @ExperimentalCoroutinesApi
     private fun connect(userId: String, token: String) {
 
         val dependencies = AndroidChatkitDependencies(
@@ -85,7 +88,15 @@ class ChatKitDemoApp : Application() {
                 is Result.Success -> {
                     result.value.let { user ->
                         currentUser = user
-                        user.enablePushNotifications()
+                        user.enablePushNotifications { result ->
+                            when (result) {
+                                is Result.Success -> {
+                                    // Push Notifications Service Enabled!
+                                }
+
+                                is Error -> logger.error("Error starting Push Notifications")
+                            }
+                        }
                     }
                 }
 
@@ -94,12 +105,15 @@ class ChatKitDemoApp : Application() {
         }
     }
 
+    @ExperimentalCoroutinesApi
     private var currentUser by Delegates.observable<CurrentUser?>(null) { _, _, new ->
         new?.let { userBroadcast.offer(it) }
     }
 
+    @ExperimentalCoroutinesApi
     private val userBroadcast = BroadcastChannel<CurrentUser>(capacity = Channel.CONFLATED)
 
+    @ExperimentalCoroutinesApi
     suspend fun currentUser(): CurrentUser = when (currentUser) {
         null -> userBroadcast.openSubscription().receive()
         else -> currentUser!!

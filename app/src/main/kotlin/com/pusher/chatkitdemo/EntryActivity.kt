@@ -20,17 +20,17 @@ import kotlinx.android.synthetic.main.activity_entry.*
 import kotlinx.android.synthetic.main.activity_entry_loaded.*
 import kotlinx.android.synthetic.main.include_error.*
 import kotlinx.android.synthetic.main.include_loading.*
-import kotlinx.coroutines.experimental.android.UI
-import kotlinx.coroutines.experimental.channels.BroadcastChannel
-import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.channels.consumeEach
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.consumeEach
 import okhttp3.*
 import kotlin.properties.Delegates
 
 class EntryActivity : AppCompatActivity() {
 
     private val views by lazy { arrayOf(idleLayout, loadedLayout, errorLayout) }
+    @ExperimentalCoroutinesApi
     private val viewModel by lazy { viewModel<EntryViewModel>() }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -38,12 +38,15 @@ class EntryActivity : AppCompatActivity() {
         setContentView(R.layout.activity_entry)
     }
 
+    @ExperimentalCoroutinesApi
+    @ObsoleteCoroutinesApi
     override fun onStart() {
         super.onStart()
         // TODO: Investigate potential leak into viewModel
-        launch { viewModel.states.consumeEach { state = it } }
+        GlobalScope.launch { viewModel.states.consumeEach { state = it } }
     }
 
+    @ExperimentalCoroutinesApi
     override fun onNewIntent(intent: Intent?) {
         super.onNewIntent(intent)
         val navigationEvent = intent?.navigationEvent
@@ -52,6 +55,7 @@ class EntryActivity : AppCompatActivity() {
         }
     }
 
+    @ExperimentalCoroutinesApi
     private var state by Delegates.observable<State>(Idle) { _, _, state ->
         state.render()
     }
@@ -64,15 +68,16 @@ class EntryActivity : AppCompatActivity() {
         data class Failure(val error: Error) : State()
     }
 
+    @ExperimentalCoroutinesApi
     private fun State.render() = when (this) {
-        is Idle -> launch(UI) { renderIdle() }
-        is UserIdReady -> launch(UI) {
+        is Idle -> GlobalScope.launch(Dispatchers.Main) { renderIdle() }
+        is UserIdReady -> GlobalScope.launch(Dispatchers.Main) {
             renderIdle()
             viewModel.loadUser(userId)
         }
-        is UserReady -> launch(UI) { renderUser(currentUser) }
-        is Failure -> launch(UI) { renderFailure(error) }
-        is RequiresAuth -> launch(UI) { openInBrowser(authUrl) }
+        is UserReady -> GlobalScope.launch(Dispatchers.Main) { renderUser(currentUser) }
+        is Failure -> GlobalScope.launch(Dispatchers.Main) { renderFailure(error) }
+        is RequiresAuth -> GlobalScope.launch(Dispatchers.Main) { openInBrowser(authUrl) }
     }
 
     private fun renderIdle() {
@@ -88,6 +93,7 @@ class EntryActivity : AppCompatActivity() {
         }
     }
 
+    @ExperimentalCoroutinesApi
     private fun renderFailure(error: Error) {
         views.showOnly(errorLayout)
         errorMessageView.text = "$error"
@@ -99,11 +105,12 @@ class EntryActivity : AppCompatActivity() {
 
 }
 
+@ExperimentalCoroutinesApi
 class EntryViewModel : ViewModel() {
 
     private object Github {
         private const val gitHubClientId = "20cdd317000f92af12fe"
-        private const val callbackUri = "https://chatkit-demo-server.herokuapp.com/success?url=chatkit://auth"
+        private const val callbackUri = "https://chatkit-demoauth-server.herokuapp.com/success?url=chatkit://auth"
 
         const val gitHubAuthUrl = "https://github.com/login/oauth/authorize" +
                 "?client_id=$gitHubClientId" +
@@ -111,7 +118,9 @@ class EntryViewModel : ViewModel() {
                 "&redirect_uri=$callbackUri"
     }
 
+    @ExperimentalCoroutinesApi
     private val stateBroadcast = BroadcastChannel<EntryActivity.State>(Channel.CONFLATED)
+    @ExperimentalCoroutinesApi
     val states get() = stateBroadcast.openSubscription()
 
     private val client by lazy { OkHttpClient() }
@@ -122,7 +131,7 @@ class EntryViewModel : ViewModel() {
         load()
     }
 
-    fun load() = launch {
+    fun load() = GlobalScope.launch {
         app.userId.let { id ->
             when (id) {
                 null -> RequiresAuth(Github.gitHubAuthUrl)
@@ -145,11 +154,11 @@ class EntryViewModel : ViewModel() {
     data class AuthRequestBody(val code: String)
 
     fun authorize(code: String) {
-        launch {
+        GlobalScope.launch {
             if (Looper.myLooper() == null) Looper.prepare()
             val requestBody = RequestBody.create(MediaType.parse("text/plain"), AuthRequestBody(code).toJson())
             val request = Request.Builder().apply {
-                url("https://chatkit-demo-server.herokuapp.com/auth")
+                url("https://chatkit-demoauth-server.herokuapp.com/auth")
                 post(requestBody)
             }.build()
             val response = client.newCall(request).execute()

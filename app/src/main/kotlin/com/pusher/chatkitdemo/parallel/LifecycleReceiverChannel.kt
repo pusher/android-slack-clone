@@ -5,16 +5,20 @@ import android.arch.lifecycle.Lifecycle.Event.*
 import android.arch.lifecycle.LifecycleObserver
 import android.arch.lifecycle.LifecycleOwner
 import android.arch.lifecycle.OnLifecycleEvent
-import kotlinx.coroutines.experimental.channels.BroadcastChannel
-import kotlinx.coroutines.experimental.channels.Channel
-import kotlinx.coroutines.experimental.channels.ReceiveChannel
-import kotlinx.coroutines.experimental.channels.toChannel
-import kotlinx.coroutines.experimental.launch
+import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.channels.BroadcastChannel
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.toChannel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.ObsoleteCoroutinesApi
 
+@ExperimentalCoroutinesApi
 fun <A> LifecycleOwner.onLifecycle(block: () -> ReceiveChannel<A>): ReceiveChannel<A> =
         LifecycleReceiverChannel(this.lifecycle, block)
 
-private class LifecycleReceiverChannel<out A>(
+private class LifecycleReceiverChannel<out A> @ExperimentalCoroutinesApi constructor(
         lifecycle: Lifecycle,
         private val block: () -> ReceiveChannel<A>,
         private val broadcastChannel: BroadcastChannel<A> = BroadcastChannel(Channel.CONFLATED),
@@ -27,11 +31,12 @@ private class LifecycleReceiverChannel<out A>(
         lifecycle.addObserver(this)
     }
 
+    @ObsoleteCoroutinesApi
     @OnLifecycleEvent(ON_START)
     fun onStart() {
         channel?.cancel()
         channel = block()
-        launch { channel?.toChannel(broadcastChannel) }
+        GlobalScope.launch { channel?.toChannel(broadcastChannel) }
     }
 
     @OnLifecycleEvent(ON_STOP)
